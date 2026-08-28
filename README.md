@@ -362,7 +362,7 @@ kubectl get nodes
 ```
 The node should be in Ready status.
 
-heck existing pods:
+Check existing pods:
 ```bash
 kubectl get pods
 ```
@@ -717,9 +717,9 @@ BOOK_ID="7cf0b96f-013d-4522-b811-1457237408c6"
 REQUEST_NO=1
 
 for BORROWER_ID in \
-  "82d22c57-19d5-4e57-8c7c-489adefe62d6" \
+  "4e301360-7fe2-486d-b36e-fce971526ad0" \
   "7d3d0a15-ddcd-4bbb-a11b-84a981cfdfa9" \
-  "4e301360-7fe2-486d-b36e-fce971526ad0"
+  "82d22c57-19d5-4e57-8c7c-489adefe62d6"
 do
   (
     echo "===== REQUEST ${REQUEST_NO} ====="
