@@ -1,15 +1,12 @@
 name: CI/CD
 
 on:
-
   push:
     branches:
       - main
-
   pull_request:
     branches:
       - main
-
 
 env:
   REGISTRY: ghcr.io
@@ -23,13 +20,9 @@ jobs:
   # ============================================================
 
   test:
-
     name: Run Tests
-
     runs-on: ubuntu-latest
-
     steps:
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -49,24 +42,16 @@ jobs:
   # ============================================================
 
   build-and-push:
-
     name: Build & Push Docker Image
-
     needs: test
-
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
     runs-on: ubuntu-latest
-
     permissions:
       contents: read
       packages: write
-
     steps:
-
       - name: Checkout
         uses: actions/checkout@v4
-
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -76,13 +61,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v3
 
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
-
 
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
@@ -99,55 +82,64 @@ jobs:
   # ============================================================
   # CD - DEPLOY TO KUBERNETES
   # ============================================================
+  #
+  # NOTE:
+  # This deployment job is intentionally kept for the future.
+  #
+  # The current Kubernetes cluster is running locally on Docker
+  # Desktop and is therefore not accessible from the GitHub Actions
+  # hosted runner.
+  #
+  # The deployment will be migrated to a remote Kubernetes cluster
+  # (e.g. AWS EKS) once the cloud infrastructure is ready.
+  #
+  # Until then, this job may fail because the GitHub Actions runner
+  # cannot connect to the local Docker Desktop Kubernetes cluster.
+  #
+  # ============================================================
 
   deploy:
-
     name: Deploy to Kubernetes
-
     needs: build-and-push
-
     runs-on: ubuntu-latest
-
     steps:
-
       - name: Checkout
         uses: actions/checkout@v4
-
-
       - name: Setup kubectl
         uses: azure/setup-kubectl@v4
 
 
+      # NOTE:
+      # KUBE_CONFIG currently points to the local Docker Desktop
+      # Kubernetes cluster. GitHub Actions cannot directly access
+      # this local cluster from the hosted runner.
       - name: Configure Kubernetes
         env:
           KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
-
         run: |
           mkdir -p ~/.kube
           echo "$KUBE_CONFIG" > ~/.kube/config
           chmod 600 ~/.kube/config
 
-
+      # NOTE:
+      # These deployment steps are intended for the future remote
+      # Kubernetes environment, such as AWS EKS.
       - name: Apply MySQL
         run: |
           kubectl apply -f k8s/mysql.yaml
-
 
       - name: Apply Database Secret
         run: |
           kubectl apply -f k8s/secret.yaml
 
-
       - name: Apply Library API
         run: |
           kubectl apply -f k8s/deployment.yaml
-
 
       - name: Update Docker Image
         run: |
           kubectl set image deployment/library-api \
             library-api=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-
 
       - name: Wait for Rollout
         run: |

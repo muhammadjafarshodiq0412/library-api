@@ -33,6 +33,7 @@ build/
 .env
 .env.*
 !.env.example
+./k8s/secret.yaml
 
 ### OS ###
 .DS_Store

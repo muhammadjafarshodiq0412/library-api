@@ -45,7 +45,7 @@ spec:
               value: library
 
             - name: MYSQL_PASSWORD
-              value: library
+              value: library123
 
             - name: MYSQL_ROOT_PASSWORD
               value: root

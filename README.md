@@ -241,6 +241,7 @@ isbn_catalog
 
 # ▶️ How to Run
 
+---
 ## Run with Docker Compose
 
 Make sure Docker Desktop is running.
@@ -267,6 +268,22 @@ Restart
 docker compose up -d
 ```
 
+Check:
+```bash
+docker images
+docker ps
+```
+
+delete images
+```bash
+docker rmi library-api:1.0.0
+```
+```bash
+docker rmi ghcr.io/muhammadjafarshodiq0412/library-api:latest
+```
+```bash
+docker rmi mysql:8.4   
+```
 ### Rebuild/Build the image and start all services
 If there are changes to the application code or Dockerfile:
 
@@ -290,7 +307,148 @@ docker compose up -d --build --no-cache
 
 --- 
 
-## Run without Docker Compose
+# Manual Deployment to Kubernetes
+
+The Kubernetes cluster is currently running locally using Docker Desktop.
+The GitHub Actions deployment step is intentionally not used yet because the GitHub 
+Actions runner cannot access the local 
+Docker Desktop Kubernetes cluster.
+
+## Prerequisites
+
+Make sure:
+
+- Docker Desktop is running
+- Kubernetes is enabled in Docker Desktop
+- `kubectl` is installed
+- The current Kubernetes context is `docker-desktop`
+- The required Docker image has already been pushed to GHCR/ECR (Service Registry)
+
+Check the current context:
+
+```bash
+kubectl config get-contexts
+```
+Expected:
+```text
+CURRENT   NAME             CLUSTER          AUTHINFO         NAMESPACE
+*         docker-desktop   docker-desktop   docker-desktop
+```
+
+### 0. Reset Kubernetes
+```bash
+kubectl delete -f k8s/deployment.yaml
+```
+```bash
+kubectl delete -f k8s/secret.yaml
+```
+```bash
+kubectl delete -f k8s/mysql.yaml
+```
+
+Check:
+```bash
+kubectl get pods
+kubectl get deployments
+kubectl get services
+kubectl get pvc
+kubectl get secrets
+```
+
+### 1. Verify the Kubernetes Cluster
+Check the nodes:
+```bash
+kubectl get nodes
+```
+The node should be in Ready status.
+
+heck existing pods:
+```bash
+kubectl get pods
+```
+
+### 2. Deploy MySQL
+Apply the MySQL configuration:
+```bash
+kubectl apply -f k8s/mysql.yaml
+```
+Verify:
+```bash
+kubectl get pods
+```
+Wait until the MySQL pod is:
+>1/1   Running
+
+### 3. Deploy Database Secret
+Apply the database secret:
+```bash
+kubectl apply -f k8s/secret.yaml
+```
+Verify:
+```bash
+kubectl get secrets
+```
+
+The following secret should exist:
+> library-db
+
+### 4. Deploy Library API
+Apply the application deployment:
+```bash
+kubectl apply -f k8s/deployment.yaml
+```
+
+Check the deployment:
+```bash 
+kubectl get deployments
+```
+Expected:
+```text
+NAME          READY
+library-api   2/2
+mysql         1/1
+```
+Check the pods:
+```bash
+kubectl get pods
+```
+The Library API should have two running pods because the deployment is configured with:
+> replicas: 2
+
+### 5. Update the Docker Image
+The Docker image is stored in GitHub Container Registry (GHCR).
+
+To deploy a specific image version:
+```bash
+kubectl set image deployment/library-api \
+  library-api=ghcr.io/muhammadjafarshodiq0412/library-api:<IMAGE_TAG>
+```
+
+For example:
+```bash
+kubectl set image deployment/library-api \
+  library-api=ghcr.io/muhammadjafarshodiq0412/library-api:latest
+```
+
+### 6. Check Rollout Status
+Check the deployment rollout:
+```bash
+kubectl rollout status deployment/library-api
+```
+Expected:
+>deployment "library-api" successfully rolled out
+
+### 7. Access the Application Locally
+The library-api Kubernetes Service uses ClusterIP, so it is not directly accessible from the host machine.
+
+Use port forwarding:
+```bash
+kubectl port-forward service/library-api 8080:80
+```
+Or use Lens to create the port forward.
+
+---
+## Run without Docker Compose and K8s
 
 ## 📦 Prerequisites
 

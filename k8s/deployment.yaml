@@ -27,29 +27,25 @@ spec:
         app: library-api
 
     spec:
-
       containers:
         - name: library-api
-
-          image: ghcr.io/YOUR_GITHUB_USERNAME/library-api:latest
-
+          image: ghcr.io/muhammadjafarshodiq0412/library-api:latest
           ports:
             - name: http
               containerPort: 8080
-
           env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: dev
             - name: DB_URL
               valueFrom:
                 secretKeyRef:
                   name: library-db
                   key: url
-
             - name: DB_USERNAME
               valueFrom:
                 secretKeyRef:
                   name: library-db
                   key: username
-
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
