@@ -1,0 +1,104 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: library-api
+
+  labels:
+    app: library-api
+
+spec:
+  replicas: 2
+
+  strategy:
+    type: RollingUpdate
+
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+
+  selector:
+    matchLabels:
+      app: library-api
+
+  template:
+    metadata:
+      labels:
+        app: library-api
+
+    spec:
+
+      containers:
+        - name: library-api
+
+          image: ghcr.io/YOUR_GITHUB_USERNAME/library-api:latest
+
+          ports:
+            - name: http
+              containerPort: 8080
+
+          env:
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: library-db
+                  key: url
+
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: library-db
+                  key: username
+
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: library-db
+                  key: password
+
+          readinessProbe:
+            httpGet:
+              path: /library-service/actuator/health/readiness
+              port: http
+
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /library-service/actuator/health/liveness
+              port: http
+
+            initialDelaySeconds: 30
+            periodSeconds: 20
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+
+---
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: library-api
+
+spec:
+  type: ClusterIP
+
+  selector:
+    app: library-api
+
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

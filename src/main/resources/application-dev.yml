@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/library?useSSL=false&serverTimezone=Asia/Jakarta&createDatabaseIfNotExist=true}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:}
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true

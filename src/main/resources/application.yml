@@ -1,0 +1,53 @@
+spring:
+  application:
+    name: library-api
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+server:
+  port: ${PORT:8080}
+  servlet:
+    context-path: /library-service
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+# swagger
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+
+# Logging level
+logging:
+  level:
+    com..book_lending_service.service: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.web.servlet.mvc.method.annotation.HttpEntityMethodProcessor: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [tracking-ref=%X{tracking-ref}] [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [tracking-ref=%X{tracking-ref}] [%thread] %-5level %logger{36} - %msg%n"
+  location:
+    saved: /Users/jafarshodiq/Documents/library-api/logging
+  file:
+    name: ${logging.location.saved}/library-service.log
+  logback:
+    rollingpolicy:
+      max-history: 120
